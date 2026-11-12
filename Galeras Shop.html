@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Galeras Shop</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;600;800&display=swap">
+<style>
+:root{--bg:#e9edf1;--card:#f8fafb;--fg:#17202b;--mut:#5b6776;--ac:#2f4bd6;--on:#fff;--line:#c9d1da;--bad:#b3261e;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12171e;--card:#1b222b;--fg:#e8edf3;--mut:#98a3b1;--ac:#8da0ff;--on:#10151c;--line:#2c3643;--bad:#ff8a80}}
+:root[data-theme="dark"]{--bg:#12171e;--card:#1b222b;--fg:#e8edf3;--mut:#98a3b1;--ac:#8da0ff;--on:#10151c;--line:#2c3643;--bad:#ff8a80}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 15px/1.45 'Schibsted Grotesk',system-ui,sans-serif}
+button,input,select{font:inherit;color:inherit}
+input,select{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px;min-width:0}
+input[type=file]{width:100%}
+label{display:grid;gap:3px;font-size:13px;color:var(--mut)}
+.btn{background:var(--ac);color:var(--on);border:0;border-radius:8px;padding:8px 14px;font-weight:600;cursor:pointer}
+.btn.g{background:transparent;color:var(--fg);border:1px solid var(--line)}
+.btn.g.bad{color:var(--bad)}
+.btn:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+#login{min-height:80vh;display:grid;place-content:center;gap:14px;text-align:center;padding:24px}
+#login h1{font-size:clamp(32px,7vw,56px);font-weight:800;margin:0;letter-spacing:-.02em}
+#login .btn{padding:14px 22px;font-size:17px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.top h1{font-size:18px;font-weight:800;margin:0}
+main{display:grid;gap:18px;padding:18px;max-width:1200px;margin:auto}
+@media(min-width:900px){main{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:start}#stage{position:sticky;top:18px}}
+#stage{position:relative;height:62vh;min-height:360px;border-radius:14px;overflow:hidden;background:linear-gradient(var(--card),var(--bg));border:1px solid var(--line)}
+#stage canvas{position:absolute;inset:0}
+section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+h2{font-size:15px;font-weight:600;margin:0 0 10px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sp{justify-content:space-between}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:10px}
+.card{display:flex;flex-direction:column;gap:4px;border:1px solid var(--line);border-radius:10px;padding:8px}
+.card.on{outline:2px solid var(--ac)}
+.im{aspect-ratio:1;background:var(--bg);border-radius:8px;display:grid;place-items:center;overflow:hidden;color:var(--mut);font-weight:800}
+.im img{width:100%;height:100%;object-fit:contain}
+.mut{color:var(--mut);font-size:13px}
+.bad{color:var(--bad)}
+#msg{min-height:1.4em;margin:0 0 10px;font-weight:600}
+</style>
+</head>
+<body>
+<div id="login">
+  <h1>Galeras Shop</h1>
+  <p class="mut">Elige cómo quieres entrar.</p>
+  <div class="row" style="justify-content:center">
+    <button class="btn" id="eu">Entrar como usuario</button>
+    <button class="btn g" id="ea">Entrar como administrador</button>
+  </div>
+</div>
+
+<div id="app" hidden>
+  <div class="top">
+    <h1>Galeras Shop <span class="mut" id="rol"></span></h1>
+    <button class="btn g" id="cr">Cambiar rol</button>
+  </div>
+  <main>
+    <div id="stage" aria-label="Avatar 3D"></div>
+    <div>
+      <p id="msg" role="status"></p>
+      <section>
+        <h2>Tus medidas</h2>
+        <div class="two">
+          <label>Altura (cm)<input id="h" type="number" value="170" min="120" max="210"></label>
+          <label>Peso (kg)<input id="w" type="number" value="70" min="35" max="160"></label>
+        </div>
+        <p class="mut" id="rec"></p>
+      </section>
+
+      <section id="adm" hidden>
+        <h2>Subir prenda</h2>
+        <div class="two">
+          <label>Nombre<input id="fn" type="text"></label>
+          <label>Precio<input id="fp" type="number" min="0"></label>
+          <label>Talla<select id="ft"></select></label>
+          <label>Categoría<input id="fc" type="text"></label>
+          <label>Cantidad disponible<input id="fs" type="number" min="0"></label>
+          <label>Imagen 2D<input id="fi" type="file" accept="image/*"></label>
+          <label style="grid-column:1/-1">Modelo 3D (.glb o .gltf)<input id="fg" type="file" accept=".glb,.gltf"></label>
+        </div>
+        <p><button class="btn" id="up">Subir prenda</button></p>
+      </section>
+
+      <section>
+        <div class="row sp"><h2>Catálogo</h2><select id="cat" aria-label="Categoría"></select></div>
+        <div class="grid" id="grid"></div>
+      </section>
+
+      <section>
+        <h2>Carrito</h2>
+        <div id="cart"></div>
+        <p><button class="btn" id="buy" hidden>Finalizar compra simulada</button></p>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e;};
+const SZ=['XS','S','M','L','XL','XXL'];
+const money=n=>'$ '+(Number(n)||0).toLocaleString('es');
+let role=null,prendas=[],sel=null,cart=[],db=null,assets=null,H=170,W=70;
+let R,S,C,O,body,gar,built=false;
+
+SZ.forEach(z=>$('#ft').append(new Option(z,z)));
+function msg(t){$('#msg').textContent=t;}
+
+function rec(){const s=W+(H-170)*.5;return s<55?0:s<65?1:s<75?2:s<88?3:s<100?4:5;}
+function info(){
+  const r=rec();let t='Talla recomendada: '+SZ[r]+'.';
+  if(sel){const i=SZ.indexOf(sel.talla);t+=' '+sel.nombre+' (talla '+sel.talla+') '+(i===r?'es tu talla.':i<r?'te quedará ajustada.':'te quedará holgada.');}
+  $('#rec').textContent=t;
+}
+function upd(){
+  H=Math.min(210,Math.max(120,+$('#h').value||170));
+  W=Math.min(160,Math.max(35,+$('#w').value||70));
+  if(body){
+    const bmi=W/Math.pow(H/100,2),k=Math.min(1.4,Math.max(.8,1+(bmi-22)*.03));
+    body.scale.set(k,H/170,k);
+    gar.scale.setScalar(sel?1+(SZ.indexOf(sel.talla)-rec())*.07:1);
+  }
+  info();
+}
+$('#h').oninput=upd;$('#w').oninput=upd;
+
+function fit(){
+  const b=$('#stage'),w=b.clientWidth,h=b.clientHeight;
+  if(!R||!w||!h)return;
+  R.setSize(w,h);C.aspect=w/h;C.updateProjectionMatrix();
+}
+function initScene(){
+  if(built){fit();return;}
+  built=true;
+  const box=$('#stage');
+  R=new THREE.WebGLRenderer({antialias:true,alpha:true});
+  R.setPixelRatio(Math.min(devicePixelRatio,2));
+  box.append(R.domElement);
+  S=new THREE.Scene();
+  C=new THREE.PerspectiveCamera(35,1,.1,50);C.position.set(0,1.1,4.2);
+  O=new THREE.OrbitControls(C,R.domElement);
+  O.target.set(0,.95,0);O.enableDamping=true;O.minDistance=2;O.maxDistance=7;O.update();
+  S.add(new THREE.HemisphereLight(0xffffff,0x8896a8,.9));
+  const d=new THREE.DirectionalLight(0xffffff,.8);d.position.set(2,4,3);S.add(d);
+  const fl=new THREE.Mesh(new THREE.CircleGeometry(.7,48),new THREE.MeshBasicMaterial({color:0x8896a8,transparent:true,opacity:.25}));
+  fl.rotation.x=-Math.PI/2;S.add(fl);
+  body=new THREE.Group();S.add(body);
+  const skin=new THREE.MeshStandardMaterial({color:0xcfc8bf,roughness:.7});
+  const part=(g,x,y)=>{const m=new THREE.Mesh(g,skin);m.position.set(x,y,0);body.add(m);};
+  part(new THREE.CylinderGeometry(.16,.14,.6,24),0,1.15);
+  part(new THREE.SphereGeometry(.11,24,16),0,1.6);
+  part(new THREE.CylinderGeometry(.04,.04,.55,12),-.22,1.15);
+  part(new THREE.CylinderGeometry(.04,.04,.55,12),.22,1.15);
+  part(new THREE.CylinderGeometry(.07,.06,.85,16),-.08,.425);
+  part(new THREE.CylinderGeometry(.07,.06,.85,16),.08,.425);
+  gar=new THREE.Group();gar.position.set(0,1.15,0);body.add(gar);
+  new ResizeObserver(fit).observe(box);fit();upd();
+  (function loop(){requestAnimationFrame(loop);O.update();R.render(S,C);})();
+}
+
+let wid=0;
+function wear(p){
+  const id=++wid;
+  gar.clear();
+  upd();
+  if(!p)return;
+  if(p.glb){
+    new THREE.GLTFLoader().load(p.glb,g=>{
+      if(id!==wid)return;
+      const o=g.scene,b=new THREE.Box3().setFromObject(o),s=b.getSize(new THREE.Vector3()),c=b.getCenter(new THREE.Vector3());
+      const k=.42/(s.x||1);
+      o.scale.setScalar(k);o.position.set(-c.x*k,-c.y*k,-c.z*k);
+      gar.add(o);
+    },undefined,()=>msg('No se pudo cargar el modelo 3D de esta prenda.'));
+  }else if(p.img){
+    new THREE.TextureLoader().load(p.img,t=>{
+      if(id!==wid)return;
+      const a=t.image.width/t.image.height,h=.62;
+      const m=new THREE.Mesh(new THREE.PlaneGeometry(h*a,h),new THREE.MeshBasicMaterial({map:t,transparent:true,side:THREE.DoubleSide}));
+      m.position.set(0,0,.19);gar.add(m);
+    },undefined,()=>msg('No se pudo cargar la imagen de esta prenda.'));
+  }
+}
+
+function render(){
+  const sc=$('#cat'),v=sc.value,cs=[...new Set(prendas.map(p=>p.categoria))];
+  sc.replaceChildren(new Option('Todas las categorías',''),...cs.map(c=>new Option(c,c)));
+  sc.value=cs.includes(v)?v:'';
+  const g=$('#grid');g.replaceChildren();
+  const l=prendas.filter(p=>!sc.value||p.categoria===sc.value);
+  if(!l.length)g.append(el('p','mut','Aún no hay prendas disponibles.'));
+  l.forEach(p=>{
+    const c=el('div','card'+(sel&&sel.id===p.id?' on':'')),im=el('div','im');
+    if(p.img){const i=new Image();i.src=p.img;i.alt=p.nombre;im.append(i);}else im.textContent='3D';
+    const ok=p.stock>0;
+    c.append(im,el('b',null,p.nombre),el('span','mut',p.categoria+', talla '+p.talla),el('span',null,money(p.precio)),el('span',ok?'mut':'bad',ok?p.stock+' disponibles':'Agotada'));
+    const r=el('div','row');
+    const b1=el('button','btn','Probar');b1.onclick=()=>{sel=p;wear(p);render();};r.append(b1);
+    if(ok){const b2=el('button','btn g','Agregar');b2.onclick=()=>{cart.push(p);cartR();};r.append(b2);}
+    if(role==='admin'){const b3=el('button','btn g bad','Eliminar');b3.onclick=()=>borrar(p);r.append(b3);}
+    c.append(r);g.append(c);
+  });
+}
+function cartR(){
+  const c=$('#cart');c.replaceChildren();
+  if(!cart.length){c.append(el('p','mut','Tu carrito está vacío.'));$('#buy').hidden=true;return;}
+  cart.forEach((p,i)=>{
+    const r=el('div','row sp');
+    r.append(el('span',null,p.nombre+', talla '+p.talla),el('span',null,money(p.precio)));
+    const x=el('button','btn g','Quitar');x.onclick=()=>{cart.splice(i,1);cartR();};r.append(x);c.append(r);
+  });
+  c.append(el('b',null,'Total: '+money(cart.reduce((s,p)=>s+p.precio,0))));
+  $('#buy').hidden=false;
+}
+$('#buy').onclick=()=>{cart=[];cartR();msg('Compra simulada. No se hizo ningún pago real.');};
+$('#cat').onchange=render;
+
+async function up(f){
+  try{return await assets.upload(f);}
+  catch(e){return await assets.upload(new Blob([f],{type:'application/json'}));}
+}
+$('#up').onclick=async()=>{
+  try{
+    const n=$('#fn').value.trim(),pr=parseFloat($('#fp').value),st=parseInt($('#fs').value,10);
+    const fi=$('#fi').files[0],fg=$('#fg').files[0];
+    if(!n||isNaN(pr)||isNaN(st))return msg('Completa nombre, precio y cantidad disponible.');
+    if(!fi&&!fg)return msg('Sube una imagen 2D, un modelo 3D o ambos.');
+    if(!db)return msg('El catálogo no está disponible.');
+    if(!assets)return msg('Solo los editores pueden subir archivos.');
+    const d={nombre:n,precio:pr,talla:$('#ft').value,categoria:$('#fc').value.trim()||'General',stock:st,ts:Date.now()};
+    if(fi){const r=await up(fi);d.img=r.url;d.imgId=r.id;}
+    if(fg){const r=await up(fg);d.glb=r.url;d.glbId=r.id;}
+    await db.collection('prendas').add(d);
+    ['#fn','#fp','#fs','#fc','#fi','#fg'].forEach(s=>$(s).value='');
+    msg('Prenda subida.');
+  }catch(e){msg('No se pudo subir la prenda: '+(e.message||e.code||'error desconocido'));}
+};
+async function borrar(p){
+  try{
+    await db.doc('prendas/'+p.id).delete();
+    for(const k of [p.imgId,p.glbId])if(k&&assets)await assets.delete(k).catch(()=>{});
+    msg('Prenda eliminada.');
+  }catch(e){msg('No se pudo eliminar la prenda: '+(e.message||e.code||'error desconocido'));}
+}
+
+function entrar(r){
+  role=r;$('#login').hidden=true;$('#app').hidden=false;
+  $('#adm').hidden=r!=='admin';
+  $('#rol').textContent=r==='admin'?'Administrador':'Usuario';
+  initScene();render();cartR();
+}
+$('#eu').onclick=()=>entrar('user');
+$('#ea').onclick=()=>entrar('admin');
+$('#cr').onclick=()=>{$('#app').hidden=true;$('#login').hidden=false;};
+
+(async()=>{
+  try{
+    if(!window.claude)return msg('El catálogo solo funciona dentro de Claude.');
+    db=await window.claude.use('db');assets=await window.claude.use('assets');
+    if(!db)return msg('Inicia sesión para ver el catálogo.');
+    const t=setTimeout(()=>msg('Todavía no se puede conectar con el catálogo.'),10000);
+    db.collection('prendas').orderBy('ts','desc').onSnapshot(s=>{
+      clearTimeout(t);
+      prendas=s.docs.map(d=>{const x=d.data()||{};return{id:d.id,nombre:String(x.nombre||'Prenda'),precio:Number(x.precio)||0,talla:String(x.talla||'M'),categoria:String(x.categoria||'General'),stock:Number(x.stock)||0,img:x.img,glb:x.glb,imgId:x.imgId,glbId:x.glbId};});
+      cart=cart.filter(c=>prendas.some(p=>p.id===c.id));
+      if(sel&&!prendas.some(p=>p.id===sel.id)){sel=null;if(built)wear(null);}
+      if(built){render();cartR();}
+    },e=>{clearTimeout(t);msg('Error del catálogo: '+(e.message||e.code||'desconocido'));});
+  }catch(e){msg('No se pudo iniciar el catálogo.');}
+})();
+</script>
+</body>
+</html>
